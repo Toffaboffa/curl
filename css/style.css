@@ -74,18 +74,18 @@ html,body{
 }
 
 #arrow{
-  font-size: clamp(120px, 16vw, 260px); /* ENORMT mycket större */
+  font-size: clamp(120px, 16vw, 260px);
   font-weight: 1000;
   color: #c94848;
   text-shadow: 0 6px 0 rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35);
   letter-spacing: 2px;
 
   position: fixed;
-  top: 6px;
+  top: 0;              /* LÄNGST UPP */
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%);  /* INGEN Y-TRANSLATE */
   z-index: 11;
-  pointer-events: none; /* så den aldrig “äter” touch/click */
+  pointer-events: none;
 }
 
 canvas#game{
