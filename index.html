@@ -13,17 +13,18 @@
     <div id="scoreBox">
       <div class="row"><span class="k">Score</span> <span class="v"><span id="score">0</span>p</span></div>
       <div class="row streak"><span class="k">Longest streak</span> <span class="v"><span id="bestStreak">0</span></span></div>
-      <div class="row hs"><span class="v">Marc: 31 415 926p</span></div>
+      <div class="row hs"><span class="v">Marc: 3 141 592p</span></div>
     </div>
 
     <div id="globalBox">
       <div class="gtitle">World Total Score</div>
       <div class="gvalue" id="globalTotal">0</div>
+      <div class="gsub" id="stonesLeft">Stones left: 3 141 592</div>
     </div>
   </div>
 
   <!-- Guide arrow: kept OUTSIDE the top UI so it never disappears on mobile layouts -->
-  <div id="arrow" aria-label="guide arrow">→</div>
+  <div id="arrow" class="hidden" aria-label="guide arrow">→</div>
 
   <canvas id="game" role="img" aria-label="Curling poke game"></canvas>
 

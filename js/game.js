@@ -7,7 +7,10 @@
 
   const scoreEl = document.getElementById("score");
   const arrowEl = document.getElementById("arrow");
+  // Hidden until the game actually starts.
+  if (arrowEl) arrowEl.classList.add("hidden");
   const globalTotalEl = document.getElementById("globalTotal");
+  const stonesLeftEl = document.getElementById("stonesLeft");
   const bestStreakEl = document.getElementById("bestStreak");
 
   const startOverlay = document.getElementById("startOverlay");
@@ -35,12 +38,25 @@
 
   let sb = null;
   let globalTotal = 0;
+  updateStonesLeft();
 
   // Highest streak (global)
   let highestStreak = 0;
 
   function fmtInt(n){
     try{ return new Intl.NumberFormat('en-US').format(n); }catch(_){ return String(n); }
+  }
+
+  const MARC_TOTAL = 3141592;
+
+  function updateStonesLeft(){
+    if (!stonesLeftEl) return;
+    if (typeof globalTotal !== 'number' || !isFinite(globalTotal)) {
+      stonesLeftEl.textContent = 'Stones left: —';
+      return;
+    }
+    const left = Math.max(0, MARC_TOTAL - Math.floor(globalTotal));
+    stonesLeftEl.textContent = `Stones left: ${fmtInt(left)}`;
   }
 
   function renderHighestStreak(){
@@ -58,6 +74,7 @@
       if (!error && data && typeof data.total !== "undefined"){
         globalTotal = Number(data.total) || 0;
         if (globalTotalEl) globalTotalEl.textContent = fmtInt(globalTotal);
+        updateStonesLeft();
       }
 
       // Subscribe to realtime updates
@@ -67,6 +84,8 @@
           if (typeof t !== "undefined"){
             globalTotal = Number(t) || 0;
             if (globalTotalEl) globalTotalEl.textContent = fmtInt(globalTotal);
+            updateStonesLeft();
+        updateStonesLeft();
           }
         })
         .subscribe();
@@ -78,6 +97,7 @@
       // Ignore; the game still runs locally — but log the reason for debugging.
       try{ console.warn('Supabase init failed (global counter):', e); }catch(_){ }
       if (globalTotalEl) globalTotalEl.textContent = '—';
+      updateStonesLeft();
       // Optional: show a tiny hint in console only; game keeps running.
     }
   }
@@ -163,6 +183,7 @@
       if (data && typeof data.total !== "undefined"){
         globalTotal = Number(data.total) || 0;
         if (globalTotalEl) globalTotalEl.textContent = fmtInt(globalTotal);
+        updateStonesLeft();
       }
     }catch(e){
       try{ console.warn("Global counter crashed:", e); }catch(_){ }
@@ -340,6 +361,7 @@
   function startGame() {
     state.started = true;
     state.running = true;
+    if (arrowEl) arrowEl.classList.remove("hidden");
     startOverlay.classList.add("hidden");
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
@@ -359,6 +381,7 @@
 
   function resetGame() {
     state.running = true;
+    if (arrowEl) arrowEl.classList.remove("hidden");
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
     if (dialogEl) dialogEl.classList.remove('isCongrats');
@@ -377,6 +400,8 @@
 
   function gameOver() {
     state.running = false;
+    if (arrowEl) arrowEl.classList.add("hidden");
+    state.stoneObj = null;
     overlay.classList.remove("hidden");
 
     // Always show BIG score in the same dialog.
@@ -397,6 +422,8 @@
   btnQuit.addEventListener("click", () => {
     tinyNote.classList.remove("hidden");
     state.running = false;
+    if (arrowEl) arrowEl.classList.add("hidden");
+    state.stoneObj = null;
   });
 
   // --- Input rules ---
@@ -695,11 +722,12 @@ canvas.addEventListener("pointercancel", (e) => { state.holding = false; try { c
     ctx.clearRect(0, 0, w, h);
 
     drawIce(w, h, dt);
-    if (state.stoneObj) drawStone(state.stoneObj);
+    if (state.running && state.stoneObj) drawStone(state.stoneObj);
 
-    drawHandImage();
-
-    drawGuidePreview();
+    if (state.running) {
+      drawHandImage();
+      drawGuidePreview();
+    }
   }
 
   function drawIce(w, h, dt) {
