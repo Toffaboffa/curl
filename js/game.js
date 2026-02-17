@@ -164,8 +164,12 @@
     guide: "S",
 
     // difficulty curve
-    baseSpeed: 210,
+    // Slower baseline so players can actually react on mobile.
+    baseSpeed: 135,
     curlStrength: 70,
+
+    // Pre-spawn the next stone when the current one is ~75% up the screen.
+    nextStoneObj: null,
   };
 
   // --- Sprite metrics (user-provided) ---
@@ -245,15 +249,16 @@
     return "R";
   }
 
-  function spawnStone(isFirst = false) {
+  function makeStone(isFirst = false, extraDepth = 0) {
     const w = window.innerWidth;
     const h = window.innerHeight;
     const r = Math.max(42, Math.min(72, w * 0.095));
     const x = rand(w * 0.25, w * 0.75);
-    const y = h + r + (isFirst ? 40 : rand(80, 160));
-    const speed = state.baseSpeed + state.score * 12;
+    const y = h + r + (isFirst ? 40 : rand(80, 160) + extraDepth);
+    // Keep growth gentle; baseline is slower, poke can boost more.
+    const speed = state.baseSpeed + state.score * 8;
 
-    state.stoneObj = {
+    return {
       x, y, r,
       vy: -speed,
       vx: 0,
@@ -261,8 +266,17 @@
       spinVel: 0,
       touched: false
     };
+  }
 
+  function spawnStone(isFirst = false) {
+    state.stoneObj = makeStone(isFirst);
+    state.nextStoneObj = null;
     setGuide(nextGuide());
+  }
+
+  function preSpawnNextStone() {
+    // Spawn deeper so it doesn't reach the poke line before it becomes active.
+    state.nextStoneObj = makeStone(false, rand(320, 520));
   }
 
   function startGame() {
@@ -274,8 +288,9 @@
 
     state.score = 0;
     state.time = 0;
-    state.baseSpeed = 210;
+    state.baseSpeed = 135;
     state.curlStrength = 70;
+    state.nextStoneObj = null;
     state.pokeAnim = 0;
     scoreEl.textContent = "0";
 
@@ -290,8 +305,9 @@
 
     state.score = 0;
     state.time = 0;
-    state.baseSpeed = 210;
+    state.baseSpeed = 135;
     state.curlStrength = 70;
+    state.nextStoneObj = null;
     state.pokeAnim = 0;
     scoreEl.textContent = "0";
 
@@ -429,7 +445,8 @@
 
     // Success effects
     s.touched = true;
-    s.vy *= 1.10;
+    // Slower baseline, but a poke gives a more noticeable speed-up.
+    s.vy *= 1.22;
 
     const curlDir = (state.guide === "R") ? 1 : (state.guide === "L") ? -1 : 0;
     s.vx = curlDir * state.curlStrength;
@@ -441,7 +458,7 @@
     // Add to worldwide total (if configured)
     addToGlobalCounter(1);
 
-    state.baseSpeed = Math.min(420, state.baseSpeed + 7);
+    state.baseSpeed = Math.min(320, state.baseSpeed + 4);
     state.curlStrength = Math.min(160, state.curlStrength + 2);
   
     // New guide after every successful poke (you can keep poking the same stone)
@@ -491,8 +508,33 @@
       // Next stone when exiting top (only if touched)
       if (s.y < -s.r - 10) {
         if (!s.touched) gameOver();
-        else spawnStone(false);
+        else {
+          if (state.nextStoneObj) {
+            state.stoneObj = state.nextStoneObj;
+            state.nextStoneObj = null;
+            setGuide(nextGuide());
+          } else {
+            spawnStone(false);
+          }
+        }
       }
+
+      // Pre-spawn the next stone once the current stone is ~75% up the screen.
+      if (!state.nextStoneObj && s.y < window.innerHeight * 0.25) {
+        preSpawnNextStone();
+      }
+    }
+
+    // Let the pre-spawned stone start moving so it's "on deck" visually.
+    if (state.running && state.nextStoneObj) {
+      const n = state.nextStoneObj;
+      n.y += n.vy * dt;
+      n.x += n.vx * dt;
+      n.spin += n.spinVel * dt;
+      n.vx *= (1 - 0.6 * dt);
+      n.spinVel *= (1 - 0.22 * dt);
+      const w = window.innerWidth;
+      n.x = clamp(n.x, n.r * 1.2, w - n.r * 1.2);
     }
 
     render(dt);
@@ -583,6 +625,8 @@
 
     drawIce(w, h, dt);
 
+    // Draw the next stone first (behind), then the active one.
+    if (state.nextStoneObj) drawStone(state.nextStoneObj);
     if (state.stoneObj) drawStone(state.stoneObj);
 
     drawHandImage();

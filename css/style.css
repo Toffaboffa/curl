@@ -53,6 +53,8 @@ html,body{
 #scoreBox .k{ color:var(--muted); font-weight:700; font-size:12px; }
 #scoreBox .v{ font-weight:900; }
 #scoreBox .hs{ margin-top:6px; opacity:.95; }
+/* When High Score label is removed, keep the line aligned nicely */
+#scoreBox .row.hs{ justify-content:flex-start; }
 
 #guideBox{
   /* Remove the "box" and let the arrow float centered */
@@ -219,11 +221,12 @@ button:active{ transform:translateY(1px); }
 
 #arrow{
   position: fixed !important;
-  top: calc(env(safe-area-inset-top, 0px) + 0px) !important;
+  /* Place the guide arrow at 75% from the bottom (= 25% from the top). */
+  top: calc(25vh + env(safe-area-inset-top, 0px)) !important;
   left: 50% !important;
   bottom: auto !important;
 
-  transform: translate(-50%, 0) !important; /* ingen Y-translate */
+  transform: translate(-50%, -50%) !important;
   margin: 0 !important;
 
   font-size: clamp(120px, 16vw, 260px);
@@ -234,4 +237,24 @@ button:active{ transform:translateY(1px); }
 
   z-index: 9999 !important;
   pointer-events: none;
+}
+
+/* Phone layout: make left/right boxes split 50/50 and simplify text */
+@media (max-width: 520px){
+  #uiTop{ gap:8px; padding:8px; }
+
+  /* Two columns: score (left) and world score (right). The arrow is on the playfield anyway. */
+  #guideBox{ display:none; }
+
+  #scoreBox, #globalBox{
+    flex: 1 1 50%;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  #scoreBox .k{ font-size:11px; }
+  #scoreBox .v{ font-size:12px; }
+
+  #globalBox .gtitle{ font-size:11px; }
+  #globalBox .gvalue{ font-size: clamp(22px, 7vw, 42px); }
 }
