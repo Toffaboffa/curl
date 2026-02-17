@@ -113,9 +113,9 @@
   };
 
   // Put these files next to index.html
-  assets.handIdle.src = "hand1.png";
-  assets.handPoke.src = "hand2.png";
-  assets.stone.src = "stone.png";
+	assets.handIdle.src = "assets/images/hand1.png";
+	assets.handPoke.src = "assets/images/hand2.png";
+	assets.stone.src    = "assets/images/stone.png";
 
   function onAssetReady() {
     assets.readyCount++;
