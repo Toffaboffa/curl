@@ -1,46 +1,60 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport"/>
-<title>Curling Poke: The Totally illegal Edition</title>
-<link href="style.css" rel="stylesheet"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Curling Poke: The Totally illegal Edition</title>
+
+  <!-- FIX: correct path -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-<div id="uiTop">
-<div id="scoreBox">
-<div class="row"><span class="k">Score</span> <span class="v"><span id="score">0</span>p</span></div>
-<div class="row hs"><span class="k">High Score</span> <span class="v">Marc: 31 415 926p</span></div>
-</div>
-<div id="guideBox">
-<div class="label">Guide</div>
-<div id="arrowRow">
-<div aria-label="guide arrow" id="arrow">→</div>
-</div>
-</div>
-<div id="globalBox"><div class="gtitle">Total poked stones world wide</div><div class="gvalue" id="globalTotal">0</div></div></div>
-<canvas aria-label="Curling poke game" id="game" role="img"></canvas>
-<!-- START overlay -->
-<div id="startOverlay">
-<div id="startDialog">
-<div id="startTitle">Curling Poke</div>
-<div id="startSub">A totally legitimate Olympic mini-game.</div>
-<button id="btnStart">Start</button>
-<div id="startTiny">Tip: On mobile, release to poke. On desktop, click to poke.</div>
-</div>
-</div>
-<!-- GAME OVER overlay -->
-<div class="hidden" id="overlay">
-<div id="dialog">
-<div id="dialogTitle">Oops, your finger didnt touch the stone the right way.</div>
-<div id="dialogButtons">
-<button id="btnRetry">Fuck off and try again</button>
-<button id="btnQuit">I’m sorry, I won’t cheat again</button>
-</div>
-<div class="hidden" id="tinyNote">Ok. Sweden approves this outcome.</div>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="game.js"></script>
+  <div id="uiTop">
+    <div id="scoreBox">
+      <div class="row"><span class="k">Score</span> <span class="v"><span id="score">0</span>p</span></div>
+      <div class="row hs"><span class="k">High Score</span> <span class="v">Marc: 31 415 926p</span></div>
+    </div>
+
+    <div id="guideBox">
+      <div class="label">Guide</div>
+      <div id="arrowRow">
+        <div id="arrow" aria-label="guide arrow">→</div>
+      </div>
+    </div>
+
+    <div id="globalBox">
+      <div class="gtitle">Total poked stones world wide</div>
+      <div class="gvalue" id="globalTotal">0</div>
+    </div>
+  </div>
+
+  <canvas id="game" role="img" aria-label="Curling poke game"></canvas>
+
+  <!-- START overlay -->
+  <div id="startOverlay">
+    <div id="startDialog">
+      <div id="startTitle">Curling Poke</div>
+      <div id="startSub">A totally legitimate Olympic mini-game.</div>
+      <button id="btnStart">Start</button>
+      <div id="startTiny">Tip: On mobile, release to poke. On desktop, click to poke.</div>
+    </div>
+  </div>
+
+  <!-- GAME OVER overlay -->
+  <div id="overlay" class="hidden">
+    <div id="dialog">
+      <div id="dialogTitle">Oops, your finger didnt touch the stone the right way.</div>
+      <div id="dialogButtons">
+        <button id="btnRetry">Fuck off and try again</button>
+        <button id="btnQuit">I’m sorry, I won’t cheat again</button>
+      </div>
+      <div id="tinyNote" class="hidden">Ok. Sweden approves this outcome.</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- FIX: correct path -->
+  <script src="js/game.js"></script>
 </body>
 </html>
