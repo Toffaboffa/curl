@@ -314,7 +314,7 @@
   function makeStone(isFirst = false) {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const r = Math.max(42, Math.min(72, w * 0.095));
+    const r = Math.max(48, Math.min(84, w * 0.11));
     const x = rand(w * 0.25, w * 0.75);
     const y = h + r + (isFirst ? 40 : rand(80, 160));
     // Keep growth gentle; baseline is slower, poke can boost more.
@@ -495,7 +495,7 @@
     }
 
     // Determine poke "side"
-    const sideDeadzone = Math.max(8, s.r * 0.22);
+    const sideDeadzone = Math.max(10, s.r * 0.32);
     let pokeType = "S";
     if (dx < -sideDeadzone) pokeType = "L";
     else if (dx > sideDeadzone) pokeType = "R";
