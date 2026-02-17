@@ -2,6 +2,9 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
+  // Prevent mobile browsers from treating touches as scroll/zoom gestures.
+  canvas.style.touchAction = "none";
+
   const scoreEl = document.getElementById("score");
   const arrowEl = document.getElementById("arrow");
   const globalTotalEl = document.getElementById("globalTotal");
@@ -404,43 +407,60 @@
   }
 
   canvas.addEventListener("pointermove", (e) => {
-    // follow X always (also when not started, it just looks nice)
+  // Desktop: follow X always. Mobile: follow X while holding (dragging).
+  if (e.pointerType === "mouse") {
     setHandTargetFromClientX(e.clientX);
-  });
+    return;
+  }
+  if (!state.holding) return;
+  try { e.preventDefault(); } catch (_) {}
+  setHandTargetFromClientX(e.clientX);
+});
 
-  canvas.addEventListener("pointerdown", (e) => {
-    if (!state.started) return;        // must press Start
-    if (!state.running) return;
+canvas.addEventListener("pointerdown", (e) => {
+  if (!state.started) return;        // must press Start
+  if (!state.running) return;
 
-    state.holding = true;
-    state.pokeAnim = 0;
-    canvas.setPointerCapture(e.pointerId);
-    setHandTargetFromClientX(e.clientX);
+  // Stop browser gestures on mobile.
+  if (e.pointerType !== "mouse") {
+    try { e.preventDefault(); } catch (_) {}
+  }
 
-    // Mouse = poke on press
-    if (e.pointerType === "mouse") {
-      doPoke();
-      state.pokeAnim = 0.0001;
-    }
-  });
+  state.holding = true;
+  state.pokeAnim = 0;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  setHandTargetFromClientX(e.clientX);
 
-  canvas.addEventListener("pointerup", (e) => {
-    if (!state.started) return;
-    if (!state.running) return;
-    if (!state.holding) return;
+  // Mouse = poke on press
+  if (e.pointerType === "mouse") {
+    doPoke();
+    state.pokeAnim = 0.0001;
+  }
+});
 
-    state.holding = false;
+canvas.addEventListener("pointerup", (e) => {
+  if (!state.started) return;
+  if (!state.running) return;
+  if (!state.holding) return;
 
-    // Touch/Pen = poke on release
-    if (e.pointerType !== "mouse") {
-      doPoke();
-      state.pokeAnim = 0.0001;
-    }
-  });
+  // Stop browser gestures on mobile.
+  if (e.pointerType !== "mouse") {
+    try { e.preventDefault(); } catch (_) {}
+  }
 
-  canvas.addEventListener("pointercancel", () => { state.holding = false; });
+  state.holding = false;
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
 
-  // --- Mechanics ---
+  // Touch/Pen = poke on release (timing game). Mouse already pokes on press.
+  if (e.pointerType !== "mouse") {
+    doPoke();
+    state.pokeAnim = 0.0001;
+  }
+});
+
+canvas.addEventListener("pointercancel", (e) => { state.holding = false; try { canvas.releasePointerCapture(e.pointerId); } catch (_) {} });
+
+// --- Mechanics ---
   function getHandDrawParams(isPokeFrame) {
     const img = isPokeFrame ? assets.handPoke : assets.handIdle;
     const up = (state.pokeAnim > 0) ? easeOutCubic(clamp(state.pokeAnim, 0, 1)) : 0;
