@@ -38,13 +38,12 @@
 
   function fmtInt(n){
     try{ return new Intl.NumberFormat('en-US').format(n); }catch(_){ return String(n); }
-  
+  }
 
   function renderHighestStreak(){
     if (!bestStreakEl) return;
     bestStreakEl.textContent = fmtInt(highestStreak);
   }
-}
 
   async function initGlobalCounter(){
     try{
@@ -77,8 +76,8 @@
       try{ console.warn('Supabase init failed (global counter):', e); }catch(_){ }
       if (globalTotalEl) globalTotalEl.textContent = '—';
       // Optional: show a tiny hint in console only; game keeps running.
-      }
     }
+  }
 
   async function initHighestStreak(){
     try{
@@ -333,7 +332,6 @@
 
   function spawnStone(isFirst = false) {
     state.stoneObj = makeStone(isFirst);
-    setGuide(nextGuide());
   }
 
   function startGame() {
