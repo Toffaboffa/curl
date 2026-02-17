@@ -730,10 +730,12 @@
     ctx.rotate(s.spin);
 
     // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.18)";
-    ctx.beginPath();
-    ctx.ellipse(0, s.r * 0.62, s.r * 0.95, s.r * 0.32, 0, 0, Math.PI * 2);
-    ctx.fill();
+	// subtle contact ring (top-view friendly)
+	ctx.strokeStyle = "rgba(0,0,0,0.10)";
+	ctx.lineWidth = Math.max(1, s.r * 0.06);
+	ctx.beginPath();
+	ctx.arc(0, 0, s.r * 0.92, 0, Math.PI * 2);
+	ctx.stroke();
 
     if (assets.ready) {
       // stone.png is 400x400; we treat s.r as the on-screen radius.
