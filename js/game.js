@@ -222,12 +222,6 @@
     holding: false,
     pokeAnim: 0, // 0..1 (for slight bob)
 
-    // tap detection (so releasing after a drag doesn't count as a poke)
-    pointerDownX: 0,
-    pointerDownY: 0,
-    pointerDownT: 0,
-    pointerMoved: false,
-
     // stone
     stoneObj: null,
 
@@ -412,14 +406,6 @@
   canvas.addEventListener("pointermove", (e) => {
     // follow X always (also when not started, it just looks nice)
     setHandTargetFromClientX(e.clientX);
-
-    // If the player is dragging their finger to aim, don't treat the eventual release as a "poke".
-    if (state.holding) {
-      const dx = (e.clientX - state.pointerDownX);
-      const dy = (e.clientY - state.pointerDownY);
-      const dist = Math.hypot(dx, dy);
-      if (dist > 12) state.pointerMoved = true; // movement threshold in CSS pixels
-    }
   });
 
   canvas.addEventListener("pointerdown", (e) => {
@@ -428,13 +414,14 @@
 
     state.holding = true;
     state.pokeAnim = 0;
-    state.pointerDownX = e.clientX;
-    state.pointerDownY = e.clientY;
-    state.pointerDownT = performance.now();
-    state.pointerMoved = false;
-
     canvas.setPointerCapture(e.pointerId);
     setHandTargetFromClientX(e.clientX);
+
+    // Mouse = poke on press
+    if (e.pointerType === "mouse") {
+      doPoke();
+      state.pokeAnim = 0.0001;
+    }
   });
 
   canvas.addEventListener("pointerup", (e) => {
@@ -442,21 +429,18 @@
     if (!state.running) return;
     if (!state.holding) return;
 
-    // Treat only a quick, mostly-stationary tap as an intentional poke.
-    const heldMs = performance.now() - (state.pointerDownT || 0);
-    const isTap = (!state.pointerMoved) && heldMs < 350;
-
     state.holding = false;
 
-    if (isTap) {
-      setHandTargetFromClientX(e.clientX);
+    // Touch/Pen = poke on release
+    if (e.pointerType !== "mouse") {
       doPoke();
       state.pokeAnim = 0.0001;
     }
   });
 
-  canvas.addEventListener("pointercancel", () => { state.holding = false; state.pointerMoved = false; });
-// --- Mechanics ---
+  canvas.addEventListener("pointercancel", () => { state.holding = false; });
+
+  // --- Mechanics ---
   function getHandDrawParams(isPokeFrame) {
     const img = isPokeFrame ? assets.handPoke : assets.handIdle;
     const up = (state.pokeAnim > 0) ? easeOutCubic(clamp(state.pokeAnim, 0, 1)) : 0;
