@@ -293,3 +293,11 @@ button:active{ transform:translateY(1px); }
   color:var(--muted);
   text-align:center;
 }
+
+/* Match Marc-line styling for the "Stones left" counter */
+#stonesLeft{
+  color: var(--txt);
+  font-weight: 900;
+  opacity: .95;
+}
+

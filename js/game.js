@@ -8,7 +8,22 @@
   const scoreEl = document.getElementById("score");
   const arrowEl = document.getElementById("arrow");
   // Hidden until the game actually starts.
-  if (arrowEl) arrowEl.classList.add("hidden");
+    hideArrow();
+  function showArrow(){
+    if (!arrowEl) return;
+    arrowEl.classList.remove("hidden");
+    arrowEl.style.display = "";
+    arrowEl.style.visibility = "visible";
+    arrowEl.style.opacity = "1";
+  }
+
+  function hideArrow(){
+    if (!arrowEl) return;
+    arrowEl.classList.add("hidden");
+    arrowEl.style.visibility = "hidden";
+    arrowEl.style.opacity = "0";
+  }
+
   const globalTotalEl = document.getElementById("globalTotal");
   const stonesLeftEl = document.getElementById("stonesLeft");
   const bestStreakEl = document.getElementById("bestStreak");
@@ -361,7 +376,7 @@
   function startGame() {
     state.started = true;
     state.running = true;
-    if (arrowEl) arrowEl.classList.remove("hidden");
+    showArrow();
     startOverlay.classList.add("hidden");
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
@@ -381,7 +396,7 @@
 
   function resetGame() {
     state.running = true;
-    if (arrowEl) arrowEl.classList.remove("hidden");
+    showArrow();
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
     if (dialogEl) dialogEl.classList.remove('isCongrats');
@@ -400,7 +415,7 @@
 
   function gameOver() {
     state.running = false;
-    if (arrowEl) arrowEl.classList.add("hidden");
+    hideArrow();
     state.stoneObj = null;
     overlay.classList.remove("hidden");
 
@@ -422,7 +437,7 @@
   btnQuit.addEventListener("click", () => {
     tinyNote.classList.remove("hidden");
     state.running = false;
-    if (arrowEl) arrowEl.classList.add("hidden");
+    hideArrow();
     state.stoneObj = null;
   });
 
@@ -633,6 +648,9 @@ canvas.addEventListener("pointercancel", (e) => { state.holding = false; try { c
     // Tie it to the current stone speed, but make it a bit slower.
     const bgSpeed = (state.running && state.stoneObj) ? Math.abs(state.stoneObj.vy) : state.baseSpeed;
     iceTexScroll += bgSpeed * dt * 0.90;
+
+    if (state.running) showArrow(); else hideArrow();
+
 
     render(dt);
     requestAnimationFrame(tick);
