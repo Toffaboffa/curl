@@ -53,7 +53,6 @@
 
   let sb = null;
   let globalTotal = 0;
-  updateStonesLeft();
 
   // Highest streak (global)
   let highestStreak = 0;
@@ -73,6 +72,10 @@
     const left = Math.max(0, MARC_TOTAL - Math.floor(globalTotal));
     stonesLeftEl.textContent = `Stones left: ${fmtInt(left)}`;
   }
+
+  // Initialize the 'Stones left' line once globals/constants exist.
+  updateStonesLeft();
+
 
   function renderHighestStreak(){
     if (!bestStreakEl) return;
@@ -100,7 +103,6 @@
             globalTotal = Number(t) || 0;
             if (globalTotalEl) globalTotalEl.textContent = fmtInt(globalTotal);
             updateStonesLeft();
-        updateStonesLeft();
           }
         })
         .subscribe();

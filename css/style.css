@@ -299,5 +299,6 @@ button:active{ transform:translateY(1px); }
   color: var(--txt);
   font-weight: 900;
   opacity: .95;
+  text-align: left;
 }
 
