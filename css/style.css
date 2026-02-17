@@ -154,6 +154,23 @@ canvas#game{
   margin-bottom:14px;
 }
 
+/* Big score shown on death (same dialog as "Oops") */
+#bigScore{
+  font-size: clamp(42px, 7.5vw, 84px);
+  font-weight: 1000;
+  line-height: 1.0;
+  color: var(--accent);
+  text-shadow: 0 2px 0 rgba(0,0,0,.25), 0 18px 40px rgba(0,0,0,.18);
+  margin: -6px 0 14px;
+  letter-spacing: 0.5px;
+}
+
+/* When you set a new Highest Streak, the dialog gets a little extra sparkle */
+#dialog.isCongrats{
+  border-color: rgba(125,211,252,.55);
+  box-shadow: 0 24px 80px rgba(0,0,0,.65);
+}
+
 #dialogButtons{
   display:flex;
   gap:10px;
@@ -258,3 +275,6 @@ button:active{ transform:translateY(1px); }
   #globalBox .gtitle{ font-size:11px; }
   #globalBox .gvalue{ font-size: clamp(22px, 7vw, 42px); }
 }
+
+/* Longest streak row */
+#scoreBox .row.streak{ margin-top:4px; }

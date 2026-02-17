@@ -5,11 +5,15 @@
   const scoreEl = document.getElementById("score");
   const arrowEl = document.getElementById("arrow");
   const globalTotalEl = document.getElementById("globalTotal");
+  const bestStreakEl = document.getElementById("bestStreak");
 
   const startOverlay = document.getElementById("startOverlay");
   const btnStart = document.getElementById("btnStart");
 
   const overlay = document.getElementById("overlay");
+  const dialogEl = document.getElementById("dialog");
+  const dialogTitleEl = document.getElementById("dialogTitle");
+  const bigScoreEl = document.getElementById("bigScore");
   const btnRetry = document.getElementById("btnRetry");
   const btnQuit = document.getElementById("btnQuit");
   const tinyNote = document.getElementById("tinyNote");
@@ -29,9 +33,18 @@
   let sb = null;
   let globalTotal = 0;
 
+  // Highest streak (global)
+  let highestStreak = 0;
+
   function fmtInt(n){
     try{ return new Intl.NumberFormat('en-US').format(n); }catch(_){ return String(n); }
+  
+
+  function renderHighestStreak(){
+    if (!bestStreakEl) return;
+    bestStreakEl.textContent = fmtInt(highestStreak);
   }
+}
 
   async function initGlobalCounter(){
     try{
@@ -56,15 +69,68 @@
         })
         .subscribe();
 
+      // Also init the Highest Streak record (same client)
+      initHighestStreak();
+
     } catch(e) {
       // Ignore; the game still runs locally — but log the reason for debugging.
       try{ console.warn('Supabase init failed (global counter):', e); }catch(_){ }
       if (globalTotalEl) globalTotalEl.textContent = '—';
       // Optional: show a tiny hint in console only; game keeps running.
       }
-
-
     }
+
+  async function initHighestStreak(){
+    try{
+      if (!sb) return;
+
+      const { data, error } = await sb
+        .from('streak_record')
+        .select('highest_streak')
+        .eq('id', 1)
+        .single();
+
+      if (!error && data && typeof data.highest_streak !== 'undefined'){
+        highestStreak = Number(data.highest_streak) || 0;
+        renderHighestStreak();
+      }
+
+      sb.channel('streak_record_updates')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'streak_record', filter: 'id=eq.1' }, (payload) => {
+          const hs = payload?.new?.highest_streak;
+          if (typeof hs !== 'undefined') { highestStreak = Number(hs) || 0; renderHighestStreak(); }
+        })
+        .subscribe();
+    } catch(e) {
+      try{ console.warn('Supabase init failed (highest streak):', e); }catch(_){ }
+    }
+  }
+
+  async function tryUpdateHighestStreak(streak){
+    try{
+      if (!sb) return { updated: false, highest: highestStreak };
+
+      const before = highestStreak;
+
+      const { data, error } = await sb.rpc('try_set_highest_streak', { new_streak: Number(streak) || 0 });
+      if (error){
+        try{ console.warn('Highest streak RPC failed:', error); }catch(_){ }
+        return { updated: false, highest: highestStreak };
+      }
+
+      // The RPC returns a row (or array) with highest_streak.
+      const row = Array.isArray(data) ? data[0] : data;
+      const latest = Number(row?.highest_streak);
+      if (!Number.isNaN(latest)) { highestStreak = latest; renderHighestStreak(); }
+
+      const s = Number(streak) || 0;
+      const updated = (!Number.isNaN(latest)) && (s === latest) && (s > before);
+      return { updated, highest: highestStreak };
+    } catch(e){
+      try{ console.warn('Highest streak update crashed:', e); }catch(_){ }
+      return { updated: false, highest: highestStreak };
+    }
+  }
 
   async function addToGlobalCounter(delta){
     try{
@@ -276,6 +342,8 @@
     startOverlay.classList.add("hidden");
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
+    if (dialogEl) dialogEl.classList.remove('isCongrats');
+    if (dialogTitleEl) dialogTitleEl.textContent = "Oops, your finger didnt touch the stone the right way.";
 
     state.score = 0;
     state.time = 0;
@@ -292,6 +360,8 @@
     state.running = true;
     overlay.classList.add("hidden");
     tinyNote.classList.add("hidden");
+    if (dialogEl) dialogEl.classList.remove('isCongrats');
+    if (dialogTitleEl) dialogTitleEl.textContent = "Oops, your finger didnt touch the stone the right way.";
 
     state.score = 0;
     state.time = 0;
@@ -307,6 +377,18 @@
   function gameOver() {
     state.running = false;
     overlay.classList.remove("hidden");
+
+    // Always show BIG score in the same dialog.
+    if (bigScoreEl) bigScoreEl.textContent = `${fmtInt(state.score)}p`;
+
+    // If you just set a new Highest Streak record, show a special congrats message.
+    // (Do not block the UI on network; update the dialog if/when the RPC returns.)
+    const streak = state.score;
+    tryUpdateHighestStreak(streak).then((res) => {
+      if (!res || !res.updated) return;
+      if (dialogEl) dialogEl.classList.add('isCongrats');
+      if (dialogTitleEl) dialogTitleEl.textContent = `Congratulations you are the best cheater so far with ${fmtInt(streak)} poked stones in a row! Now lets together beat Marc.`;
+    }).catch(() => {});
   }
 
   btnStart.addEventListener("click", startGame);
