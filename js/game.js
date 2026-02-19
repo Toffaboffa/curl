@@ -61,6 +61,16 @@
     try{ return new Intl.NumberFormat('en-US').format(n); }catch(_){ return String(n); }
   }
 
+  // --- TUNING ---
+  // New stones always spawn with the same starting speed + (optional) *very small* scaling per score.
+  // The 35% speed boost on poke applies ONLY to the currently active stone.
+  //
+  // If you want every new stone to have EXACTLY the same speed every time, set SCORE_SPEED_FACTOR = 0.
+  const START_SPEED = 135;          // px/s base speed for each new stone
+  const SCORE_SPEED_FACTOR = 0.2;     // px/s per point added to new-stone speed (0 = constant spawn speed)
+  const POKE_MULT = 1.35;           // 35% boost to the current stone on a successful poke
+  const MAX_UP_SPEED = 9999;        // optional cap (leave huge to effectively disable)
+
   const MARC_TOTAL = 3141592;
 
   function updateStonesLeft(){
@@ -358,12 +368,13 @@
     const r = Math.max(48, Math.min(84, w * 0.11));
     const x = rand(w * 0.25, w * 0.75);
     const y = h + r + (isFirst ? 40 : rand(80, 160));
-    // Keep growth gentle; baseline is slower, poke can boost more.
-    const speed = state.baseSpeed + state.score * 8;
+    // Spawn speed is controlled by the TUNING constants above.
+    // IMPORTANT: This must NOT depend on previous stones' pokes.
+    const speed = START_SPEED + state.score * SCORE_SPEED_FACTOR;
 
     return {
       x, y, r,
-      vy: -speed,
+      vy: -Math.min(speed, MAX_UP_SPEED),
       vx: 0,
       spin: 0,
       spinVel: 0,
@@ -387,7 +398,7 @@
 
     state.score = 0;
     state.time = 0;
-    state.baseSpeed = 135;
+    state.baseSpeed = START_SPEED;
     state.curlStrength = 70;
     state.pokeAnim = 0;
     scoreEl.textContent = "0";
@@ -406,7 +417,7 @@
 
     state.score = 0;
     state.time = 0;
-    state.baseSpeed = 135;
+    state.baseSpeed = START_SPEED;
     state.curlStrength = 70;
     state.pokeAnim = 0;
     scoreEl.textContent = "0";
@@ -577,7 +588,7 @@ canvas.addEventListener("pointercancel", (e) => { state.holding = false; try { c
     s.touched = true;
     // Slower baseline, but a poke gives a more noticeable speed-up.
     // (You can stack multiple correct pokes on the same stone to go faster.)
-    s.vy *= 1.35;
+    s.vy *= POKE_MULT;
 
     const curlDir = (state.guide === "R") ? 1 : (state.guide === "L") ? -1 : 0;
     s.vx = curlDir * state.curlStrength;
@@ -589,7 +600,8 @@ canvas.addEventListener("pointercancel", (e) => { state.holding = false; try { c
     // Add to worldwide total (if configured)
     addToGlobalCounter(1);
 
-    state.baseSpeed = Math.min(320, state.baseSpeed + 4);
+    // IMPORTANT: do NOT increase spawn speed here.
+    // Poke boosts apply only to the current stone (via POKE_MULT above).
     state.curlStrength = Math.min(160, state.curlStrength + 2);
   
     // New guide after every successful poke (you can keep poking the same stone)
